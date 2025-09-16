@@ -152,8 +152,6 @@ for dataset in "${datasets[@]}"; do
                     
                     python -u run.py \
                         --Exp exp_main \
-                        --extractor_path /home/tjl/my_disk_5.5T/xPatch/weights/ETTh1_96_ema_myExtractor_batch32/checkpoint.pth \
-                        --freeze False \
                         --revin 1 \
                         --is_training 1 \
                         --root_path ./dataset/ \
