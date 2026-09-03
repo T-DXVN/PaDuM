@@ -3,7 +3,7 @@
 <div align="center">
 
 [![ICASSP 2026](https://img.shields.io/badge/Conference-ICASSP%202026-blue)](https://2026.ieeeicassp.org/)
-[![Paper](https://img.shields.io/badge/Paper-PDF-green)](./Template.pdf)
+[![Paper](https://img.shields.io/badge/Paper-PDF-green)](https://arxiv.org/abs/XXXX.XXXXX)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 **Junliang Tao, Li Cao, Hongbing Wang, Chenhao Xie, Jian Li, Liang Zhou**
@@ -124,8 +124,8 @@ The Sigmoid Loss enhances forecasting performance with notable improvements in l
 ### Prerequisites
 
 - Python 3.8+
-- PyTorch 1.9+
-- CUDA 11.0+ (for GPU acceleration)
+- PyTorch 2.1.0+
+- CUDA 11.8+ (for Mamba support)
 
 ### Setup
 
@@ -138,9 +138,24 @@ cd PaDuM
 conda create -n padum python=3.8
 conda activate padum
 
-# Install dependencies
+# Install PyTorch (adjust CUDA version as needed)
+pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+
+# Install Mamba
+pip install mamba-ssm==1.2.0
+
+# Install other dependencies
 pip install -r requirements.txt
 ```
+
+### Dependencies
+
+- `torch==2.1.0`
+- `mamba-ssm==1.2.0`
+- `numpy==1.26.4`
+- `scikit-learn==1.3.0`
+- `matplotlib==3.7.0`
+- `reformer-pytorch==1.4.4`
 
 ## 🚀 Quick Start
 
@@ -153,20 +168,55 @@ Place the data in `./dataset/` folder.
 ### Training
 
 ```bash
-# Train on ETTh1 dataset
-python run.py --model PaDuM --data ETTh1 --features M --seq_len 96 --pred_len 96
+# Train on ETTh1 dataset with prediction length 96
+python run.py \
+    --is_training 1 \
+    --model_id ETTh1_96_ema \
+    --model PaDuM \
+    --data ETTh1 \
+    --root_path ./dataset/ \
+    --data_path ETTh1.csv \
+    --features M \
+    --seq_len 96 \
+    --label_len 48 \
+    --pred_len 96 \
+    --patch_len 16 \
+    --stride 8 \
+    --enc_in 7 \
+    --d_model 256 \
+    --d_state 2 \
+    --batch_size 128 \
+    --learning_rate 0.0005 \
+    --train_epochs 100 \
+    --ma_type ema \
+    --alpha 0.3 \
+    --beta 0.3
 
-# Train on multiple prediction lengths
-for pred_len in 96 192 336 720; do
-    python run.py --model PaDuM --data ETTh1 --pred_len $pred_len
-done
+# Or use the provided script to train on all datasets
+bash scripts/all.sh
 ```
 
 ### Evaluation
 
 ```bash
 # Evaluate trained model
-python run.py --model PaDuM --data ETTh1 --pred_len 96 --is_training 0 --checkpoint ./checkpoints/PaDuM_ETTh1_96.pth
+python run.py \
+    --is_training 0 \
+    --model_id ETTh1_96_ema \
+    --model PaDuM \
+    --data ETTh1 \
+    --root_path ./dataset/ \
+    --data_path ETTh1.csv \
+    --features M \
+    --seq_len 96 \
+    --label_len 48 \
+    --pred_len 96 \
+    --patch_len 16 \
+    --stride 8 \
+    --enc_in 7 \
+    --d_model 256 \
+    --d_state 2 \
+    --ma_type ema
 ```
 
 ### Key Arguments
@@ -175,34 +225,61 @@ python run.py --model PaDuM --data ETTh1 --pred_len 96 --is_training 0 --checkpo
 |----------|-------------|---------|
 | `--model` | Model name | `PaDuM` |
 | `--data` | Dataset name | `ETTh1` |
+| `--data_path` | Data file name | `ETTh1.csv` |
 | `--seq_len` | Look-back window | `96` |
+| `--label_len` | Label length | `48` |
 | `--pred_len` | Prediction horizon | `96` |
 | `--features` | Feature type (`M`/`S`/`MS`) | `M` |
 | `--enc_in` | Number of input features | `7` |
-| `--d_model` | Model dimension | `512` |
-| `--n_layers` | Number of Mamba layers | `2` |
-| `--learning_rate` | Learning rate | `1e-4` |
+| `--d_model` | Model dimension | `256` |
+| `--d_state` | Mamba state dimension | `2` |
+| `--patch_len` | Patch length | `16` |
+| `--stride` | Patch stride | `8` |
+| `--ma_type` | Moving average type (`ema`/`dema`/`reg`) | `ema` |
+| `--alpha` | EMA smoothing factor | `0.3` |
+| `--beta` | DEMA smoothing factor | `0.3` |
+| `--learning_rate` | Learning rate | `0.0001` |
 | `--batch_size` | Batch size | `32` |
 | `--train_epochs` | Training epochs | `100` |
+| `--Slope` | Sigmoid loss slope | `0.5` |
+| `--Center` | Sigmoid loss center | `10.0` |
+| `--lower_bound` | Sigmoid loss lower bound | `0.2` |
+| `--revin` | Use Reversible Instance Norm (`1`=True, `0`=False) | `1` |
 
 ## 📁 Project Structure
 
 ```
 PaDuM/
 ├── models/
-│   ├── PaDuM.py          # Main PaDuM model
-│   ├── layers/
-│   │   ├── CNN.py         # CNN stream
-│   │   ├── Mamba.py       # Mamba stream
-│   │   └── Embed.py       # Patch embedding
-│   └── losses/
-│       └── SigmoidLoss.py # Sigmoid loss function
-├── dataset/               # Dataset folder
-├── checkpoints/           # Saved models
-├── results/               # Experiment results
-├── utils/                 # Utilities
-├── run.py                 # Main training script
+│   └── PaDuM.py           # Main PaDuM model
+├── layers/
+│   ├── net_CNN.py         # CNN stream implementation
+│   ├── net_Mamba.py       # Mamba stream implementation
+│   ├── network.py         # Network utilities
+│   ├── ema.py             # Exponential Moving Average
+│   ├── dema.py            # Double EMA
+│   ├── decomp.py          # Decomposition layer
+│   └── revin.py           # Reversible Instance Normalization
+├── data_provider/
+│   ├── data_factory.py    # Data loading factory
+│   └── data_loader.py     # Dataset implementations
+├── exp/
+│   ├── exp_basic.py       # Base experiment class
+│   └── exp_main.py        # Main experiment logic
+├── utils/
+│   ├── tools.py           # Utility functions
+│   ├── metrics.py         # Evaluation metrics (MSE, MAE)
+│   └── timefeatures.py    # Time feature engineering
+├── scripts/
+│   ├── all.sh             # Full training script
+│   └── sigmoid_ablation.sh # Sigmoid loss ablation
+├── ablation/              # Ablation study implementations
+├── figures/               # Paper figures
+├── dataset/               # Dataset folder (not included)
+├── run.py                 # Main entry point
+├── generate_table.py      # Results table generator
 ├── requirements.txt       # Dependencies
+├── LICENSE                # MIT License
 └── README.md              # This file
 ```
 
