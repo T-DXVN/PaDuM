@@ -31,7 +31,7 @@ Recently, Transformer-based models have shown limitations in efficiency, while M
 ## 🏗️ Architecture
 
 <div align="center">
-<img src="./fig2-eps-converted-to.pdf" alt="PaDuM Framework" width="70%"/>
+<img src="./figures/fig2.png" alt="PaDuM Framework" width="70%"/>
 <p><em>Overview of the PaDuM framework. The input time series is decomposed into seasonal and trend components, modeled by CNN and Mamba streams, respectively.</em></p>
 </div>
 
@@ -80,7 +80,7 @@ Recently, Transformer-based models have shown limitations in efficiency, while M
 ### Performance Highlights
 
 <div align="center">
-<img src="./fig1-eps-converted-to.pdf" alt="Performance Comparison" width="60%"/>
+<img src="./figures/fig1.png" alt="Performance Comparison" width="60%"/>
 <p><em>Average MAE comparison between PaDuM and state-of-the-art baselines with look-back window size T=96.</em></p>
 </div>
 
@@ -89,7 +89,7 @@ Recently, Transformer-based models have shown limitations in efficiency, while M
 ### Architecture Design
 
 <div align="center">
-<img src="./fig3-eps-converted-to.pdf" alt="Architecture Ablation" width="50%"/>
+<img src="./figures/fig3.png" alt="Architecture Ablation" width="50%"/>
 </div>
 
 | Variant | Description |
@@ -104,7 +104,7 @@ Recently, Transformer-based models have shown limitations in efficiency, while M
 ### Sigmoid Loss Effectiveness
 
 <div align="center">
-<img src="./fig4-eps-converted-to.pdf" alt="Sigmoid Loss Ablation" width="45%"/>
+<img src="./figures/fig4.png" alt="Sigmoid Loss Ablation" width="45%"/>
 </div>
 
 The Sigmoid Loss enhances forecasting performance with notable improvements in long-term accuracy, confirming its effectiveness in focusing on recent predictions.
@@ -112,8 +112,8 @@ The Sigmoid Loss enhances forecasting performance with notable improvements in l
 ## ⚡ Efficiency Analysis
 
 <div align="center">
-<img src="./fig5-eps-converted-to.pdf" alt="Training Efficiency" width="45%"/>
-<img src="./fig6-eps-converted-to.pdf" alt="Inference Efficiency" width="45%"/>
+<img src="./figures/fig5.png" alt="Training Efficiency" width="45%"/>
+<img src="./figures/fig6.png" alt="Inference Efficiency" width="45%"/>
 </div>
 
 - **Training**: PaDuM achieves lowest MAE with fewer parameters and shorter training time
